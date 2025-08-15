@@ -107,7 +107,7 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
     }
 
     @Override
-    public boolean supportsSerialize() {
+    public boolean supportsWrite() {
         return true;
     }
 

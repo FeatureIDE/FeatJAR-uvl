@@ -134,7 +134,7 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
     }
 
     @Override
-    public boolean supportsSerialize() {
+    public boolean supportsWrite() {
         return true;
     }
 
