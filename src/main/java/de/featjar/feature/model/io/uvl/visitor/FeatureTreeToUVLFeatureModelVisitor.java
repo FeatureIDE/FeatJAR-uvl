@@ -109,7 +109,7 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
             List<FeatureTree.Group> groups = node.getGroups();
 
             for (int i = 0; i < groups.size(); i++) {
-                List<IFeatureTree> children = node.getGroupChildren(i);
+                List<IFeatureTree> children = node.getChildren(i);
                 if (children.isEmpty()) {
                     continue;
                 }

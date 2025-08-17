@@ -25,7 +25,10 @@ import de.featjar.base.data.BinomialCalculator;
 import de.featjar.base.data.Range;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.ParseException;
-import de.featjar.feature.model.*;
+import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.IFeature;
+import de.featjar.feature.model.IFeatureModel;
+import de.featjar.feature.model.IFeatureTree;
 import de.featjar.formula.io.textual.ExpressionParser;
 import de.featjar.formula.io.textual.UVLSymbols;
 import de.featjar.formula.structure.Expressions;
@@ -37,7 +40,10 @@ import de.featjar.formula.structure.connective.Or;
 import de.vill.model.FeatureType;
 import de.vill.model.Group;
 import de.vill.model.constraint.Constraint;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Provides helper functions for uvl parsing and serialization.
@@ -115,24 +121,24 @@ public class UVLUtils {
             IFeatureTree tree = featureTreeStack.pop();
 
             if (feature.getParentGroup() != null && feature.getParentGroup().GROUPTYPE == Group.GroupType.MANDATORY) {
-                tree.mutate().setMandatory();
+                tree.mutate().makeMandatory();
             } else if (feature.getParentGroup() != null
                     && feature.getParentGroup().GROUPTYPE == Group.GroupType.OPTIONAL) {
-                tree.mutate().setOptional();
+                tree.mutate().makeOptional();
             } else if (feature.getLowerBound() != null) {
                 if (feature.getUpperBound() != null) {
                     tree.mutate()
-                            .setFeatureRange(Range.of(
+                            .setFeatureCardinality(Range.of(
                                     Integer.parseInt(feature.getLowerBound()),
                                     Integer.parseInt(feature.getUpperBound())));
                 } else {
-                    tree.mutate().setFeatureRange(Range.atLeast(Integer.parseInt(feature.getLowerBound())));
+                    tree.mutate().setFeatureCardinality(Range.atLeast(Integer.parseInt(feature.getLowerBound())));
                 }
             } else {
                 if (feature.getUpperBound() != null) {
-                    tree.mutate().setFeatureRange(Range.atMost(Integer.parseInt(feature.getUpperBound())));
+                    tree.mutate().setFeatureCardinality(Range.atMost(Integer.parseInt(feature.getUpperBound())));
                 } else {
-                    tree.mutate().setFeatureRange(Range.atMost(1));
+                    tree.mutate().setFeatureCardinality(Range.atMost(1));
                 }
             }
 
@@ -158,12 +164,12 @@ public class UVLUtils {
                         throw new ParseException(String.valueOf(group.GROUPTYPE));
                 }
                 int groupID = tree.getGroups().size();
-                tree.mutate().addGroup(groupRange);
+                tree.mutate().addCardinalityGroup(groupRange);
                 for (de.vill.model.Feature childFeature : group.getFeatures()) {
                     featureStack.push(childFeature);
                     IFeature child = createFeature(featureModel, childFeature);
                     IFeatureTree childTree = tree.mutate().addFeatureBelow(child);
-                    childTree.mutate().setGroupID(groupID);
+                    childTree.mutate().setParentGroupID(groupID);
                     featureTreeStack.push(childTree);
                 }
             }
