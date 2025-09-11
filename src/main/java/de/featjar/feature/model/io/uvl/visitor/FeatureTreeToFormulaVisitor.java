@@ -77,12 +77,13 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
             return TraversalAction.FAIL;
         }
 
-        if (node.getGroups().isEmpty()) {
+        if (node.getChildrenGroups().isEmpty()) {
             problems.add(new Problem(featureName.get() + " has no group."));
             return TraversalAction.FAIL;
         }
 
-        FeatureTree.Group group = node.getGroups().get(node.getGroups().size() - 1);
+        FeatureTree.Group group =
+                node.getChildrenGroups().get(node.getChildrenGroups().size() - 1);
 
         IFormula currentFormula;
 

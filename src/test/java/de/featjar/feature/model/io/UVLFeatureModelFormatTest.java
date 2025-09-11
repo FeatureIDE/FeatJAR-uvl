@@ -140,7 +140,7 @@ public class UVLFeatureModelFormatTest {
         // testing Test1 feature
         IFeature test1Feature = parsedFeatureModel.getFeature("Test1").get();
         Assertions.assertTrue(
-                test1Feature.getFeatureTree().get().getParentGroup().isAnd());
+                test1Feature.getFeatureTree().get().getParentGroup().get().isAnd());
         Assertions.assertTrue(test1Feature.getFeatureTree().get().isOptional());
         List<String> test1ChildrenNames = test1Feature.getFeatureTree().get().getChildren().stream()
                 .map((it) -> it.getFeature().getName().get())
@@ -152,7 +152,7 @@ public class UVLFeatureModelFormatTest {
         // testing Test2 feature
         IFeature test2Feature = parsedFeatureModel.getFeature("Test2").get();
         Assertions.assertTrue(
-                test2Feature.getFeatureTree().get().getParentGroup().isAnd());
+                test2Feature.getFeatureTree().get().getParentGroup().get().isAnd());
         Assertions.assertTrue(test2Feature.getFeatureTree().get().isOptional());
         List<String> test2ChildrenNames = test2Feature.getFeatureTree().get().getChildren().stream()
                 .map((it) -> it.getFeature().getName().get())
@@ -164,31 +164,31 @@ public class UVLFeatureModelFormatTest {
         // testing Test3 feature
         IFeature test3Feature = parsedFeatureModel.getFeature("Test3").get();
         Assertions.assertTrue(
-                test3Feature.getFeatureTree().get().getParentGroup().isAlternative());
+                test3Feature.getFeatureTree().get().getParentGroup().get().isAlternative());
         Assertions.assertTrue(test3Feature.getFeatureTree().get().getChildren().isEmpty());
 
         // testing Test4 feature
         IFeature test4Feature = parsedFeatureModel.getFeature("Test4").get();
         Assertions.assertTrue(
-                test4Feature.getFeatureTree().get().getParentGroup().isAlternative());
+                test4Feature.getFeatureTree().get().getParentGroup().get().isAlternative());
         Assertions.assertTrue(test4Feature.getFeatureTree().get().getChildren().isEmpty());
 
         // testing Test5 feature
         IFeature test5Feature = parsedFeatureModel.getFeature("Test5").get();
         Assertions.assertTrue(
-                test5Feature.getFeatureTree().get().getParentGroup().isOr());
+                test5Feature.getFeatureTree().get().getParentGroup().get().isOr());
         Assertions.assertTrue(test5Feature.getFeatureTree().get().getChildren().isEmpty());
 
         // testing Test6 feature
         IFeature test6Feature = parsedFeatureModel.getFeature("Test6").get();
         Assertions.assertTrue(
-                test6Feature.getFeatureTree().get().getParentGroup().isOr());
+                test6Feature.getFeatureTree().get().getParentGroup().get().isOr());
         Assertions.assertTrue(test6Feature.getFeatureTree().get().getChildren().isEmpty());
 
         // testing Test7 feature
         IFeature test7Feature = parsedFeatureModel.getFeature("Test7").get();
         Assertions.assertTrue(
-                test7Feature.getFeatureTree().get().getParentGroup().isAnd());
+                test7Feature.getFeatureTree().get().getParentGroup().get().isAnd());
         Assertions.assertTrue(test7Feature.getFeatureTree().get().isMandatory());
         Assertions.assertTrue(test7Feature.getFeatureTree().get().getChildren().isEmpty());
 

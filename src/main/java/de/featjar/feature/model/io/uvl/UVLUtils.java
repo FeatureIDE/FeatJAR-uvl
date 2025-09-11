@@ -163,7 +163,7 @@ public class UVLUtils {
                     default:
                         throw new ParseException(String.valueOf(group.GROUPTYPE));
                 }
-                int groupID = tree.getGroups().size();
+                int groupID = tree.getChildrenGroups().size();
                 tree.mutate().addCardinalityGroup(groupRange);
                 for (de.vill.model.Feature childFeature : group.getFeatures()) {
                     featureStack.push(childFeature);

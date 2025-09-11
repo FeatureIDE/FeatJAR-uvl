@@ -106,7 +106,7 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
                                     entry.getKey().getName(),
                                     new Attribute<>(entry.getKey().getName(), entry.getValue())));
 
-            List<FeatureTree.Group> groups = node.getGroups();
+            List<FeatureTree.Group> groups = node.getChildrenGroups();
 
             for (int i = 0; i < groups.size(); i++) {
                 List<IFeatureTree> children = node.getChildren(i);
