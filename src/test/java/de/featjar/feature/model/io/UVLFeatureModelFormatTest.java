@@ -60,20 +60,20 @@ public class UVLFeatureModelFormatTest {
 
         IFeature childFeature1 = featureModel.mutate().addFeature("Test1");
         IFeatureTree childTree1 = rootTree.mutate().addFeatureBelow(childFeature1);
+        childTree1.mutate().toAlternativeGroup();
 
         IFeature childFeature2 = featureModel.mutate().addFeature("Test2");
         IFeatureTree childTree2 = rootTree.mutate().addFeatureBelow(childFeature2);
+        childTree2.mutate().toOrGroup();
 
         IFeature childFeature3 = featureModel.mutate().addFeature("Test3");
-        IFeatureTree childTree3 = childTree1.mutate().addFeatureBelow(childFeature3);
-        childTree3.mutate().toAlternativeGroup();
+        childTree1.mutate().addFeatureBelow(childFeature3);
 
         IFeature childFeature4 = featureModel.mutate().addFeature("Test4");
         childTree1.mutate().addFeatureBelow(childFeature4);
 
         IFeature childFeature5 = featureModel.mutate().addFeature("Test5");
-        IFeatureTree childTree5 = childTree2.mutate().addFeatureBelow(childFeature5);
-        childTree5.mutate().toOrGroup();
+        childTree2.mutate().addFeatureBelow(childFeature5);
 
         IFeature childFeature6 = featureModel.mutate().addFeature("Test6");
         childTree2.mutate().addFeatureBelow(childFeature6);
