@@ -49,6 +49,9 @@ import java.util.List;
  */
 public class UVLFormulaFormat implements IFormat<IFormula> {
 
+    /**
+     * Name of the root element.
+     */
     public static final String ROOT_FEATURE_NAME = "Formula";
 
     @Override

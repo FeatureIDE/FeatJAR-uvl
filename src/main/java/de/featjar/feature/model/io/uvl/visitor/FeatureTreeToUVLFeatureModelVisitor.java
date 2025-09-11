@@ -48,6 +48,9 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
     private de.vill.model.FeatureModel uvlModel;
     private List<Problem> problemList;
 
+    /**
+     * Constructs a new visitor.
+     */
     public FeatureTreeToUVLFeatureModelVisitor() {
         reset();
     }

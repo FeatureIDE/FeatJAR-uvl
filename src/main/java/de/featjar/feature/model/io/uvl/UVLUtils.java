@@ -30,6 +30,7 @@ import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
 import de.featjar.formula.io.textual.ExpressionParser;
+import de.featjar.formula.io.textual.Symbols;
 import de.featjar.formula.io.textual.UVLSymbols;
 import de.featjar.formula.structure.Expressions;
 import de.featjar.formula.structure.IExpression;
@@ -52,6 +53,12 @@ import java.util.Optional;
  * @author Sebastion Krieter
  */
 public class UVLUtils {
+    /**
+     * Converts a list of UVL constraints into a list of formulas by parsing each UVL constraint.
+     * @param uvlConstraints the UVL constraints
+     * @return the parsed constraints in the same order
+     * @throws ClassNotFoundException if the class {@link Symbols} cannot be loaded.
+     */
     public static List<IFormula> uvlConstraintToFormula(List<Constraint> uvlConstraints) throws ClassNotFoundException {
         List<IFormula> formulas = new ArrayList<>();
         for (Constraint constraint : uvlConstraints) {
@@ -77,6 +84,7 @@ public class UVLUtils {
      * Converts UVL feature model to FeatJAR feature model.
      * @param uvlFeatureModel The UVL feature model to convert.
      * @return A FeatJAR feature model.
+     * @throws ParseException if a parsing error occurs
      */
     public static IFeatureModel createFeatureModel(de.vill.model.FeatureModel uvlFeatureModel) throws ParseException {
         IFeatureModel featureModel = new FeatureModel();
@@ -91,6 +99,7 @@ public class UVLUtils {
      * @param featureModel The corresponding feature model of the feature.
      * @param uvlFeature The UVL feature to convert.
      * @return A FeatJAR feature.
+     * @throws ParseException if a parsing error occurs
      */
     public static IFeature createFeature(IFeatureModel featureModel, de.vill.model.Feature uvlFeature)
             throws ParseException {
@@ -104,6 +113,7 @@ public class UVLUtils {
      * Builds a FeatJAR feature model from a UVL root feature.
      * @param featureModel FeatJAR feature model to build.
      * @param rootUVLFeature UVL root feature from a UVL feature model.
+     * @throws ParseException if a parsing error occurs
      */
     public static void createFeatureTree(IFeatureModel featureModel, de.vill.model.Feature rootUVLFeature)
             throws ParseException {
@@ -180,6 +190,7 @@ public class UVLUtils {
      * Converts UVL feature type to FeatJAR feature type.
      * @param uvlFeature UVL feature to retrieve the type.
      * @return FeatJAR feature type.
+     * @throws ParseException if a parsing error occurs
      */
     public static Class<?> getFeatureType(de.vill.model.Feature uvlFeature) throws ParseException {
         FeatureType featureType = uvlFeature.getFeatureType();
@@ -217,6 +228,7 @@ public class UVLUtils {
      * @param key Key name of the attribute.
      * @param defaultValue Default value if the attribute does not exist.
      * @return The attribute of the feature.
+     * @param <T> the type of the attribute
      */
     @SuppressWarnings("unchecked")
     public static <T> T getAttributeValue(de.vill.model.Feature feature, String key, T defaultValue) {
@@ -295,6 +307,10 @@ public class UVLUtils {
         return new BinomialCalculator(n, k).binomial();
     }
 
+    /**
+     * Warps all given formulas in a Not node.
+     * @param nodes the formulas to negate
+     */
     protected static void negateNodes(IFormula[] nodes) {
         for (int i = 0; i < nodes.length; i++) {
             nodes[i] = new Not(nodes[i]);

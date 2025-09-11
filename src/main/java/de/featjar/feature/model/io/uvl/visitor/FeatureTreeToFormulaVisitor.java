@@ -44,8 +44,11 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
 
     private HashMap<IFeatureTree, IFormula> formulas = new HashMap<>();
     private IFormula rootFormula;
-    List<Problem> problems;
+    private List<Problem> problems;
 
+    /**
+     * Constructs a new visitor.
+     */
     public FeatureTreeToFormulaVisitor() {
         reset();
     }

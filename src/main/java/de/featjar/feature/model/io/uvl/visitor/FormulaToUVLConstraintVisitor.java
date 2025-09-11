@@ -42,6 +42,9 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IExpression, 
     private Map<IExpression, Constraint> uvlConstraints;
     private Constraint rootConstraint;
 
+    /**
+     * Constructs a new visitor.
+     */
     public FormulaToUVLConstraintVisitor() {
         reset();
     }
