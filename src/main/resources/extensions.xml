@@ -3,7 +3,7 @@
     <point id="de.featjar.feature.model.io.FeatureModelFormats">
         <extension id="de.featjar.feature.model.io.uvl.UVLFeatureModelFormat" />
     </point>
-    <point id="de.featjar.formula.io.FormulaFormats">
+    <point id="de.featjar.formula.io.FormulaFormats" priority="10">
         <extension id="de.featjar.feature.model.io.uvl.UVLFormulaFormat" />
     </point>
 </extensions>
