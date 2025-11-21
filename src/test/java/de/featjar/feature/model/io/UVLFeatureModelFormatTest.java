@@ -29,7 +29,7 @@ import de.featjar.base.io.format.IFormat;
 import de.featjar.base.io.input.FileInputMapper;
 import de.featjar.feature.model.*;
 import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
-import de.featjar.formula.assignment.ComputeBooleanClauseList;
+import de.featjar.formula.assignment.conversion.ComputeBooleanClauseList;
 import de.featjar.formula.computation.ComputeCNFFormula;
 import de.featjar.formula.computation.ComputeNNFFormula;
 import de.featjar.formula.structure.IFormula;
