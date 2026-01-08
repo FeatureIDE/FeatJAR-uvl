@@ -61,9 +61,9 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
             String content = inputMapper.get().text();
             UVLModelFactory uvlModelFactory = new UVLModelFactory();
             de.vill.model.FeatureModel uvlModel = uvlModelFactory.parse(content);
-            IFeatureModel featureModel = UVLUtils.createFeatureModel(uvlModel);
+            IFeatureModel featureModel = UVLFeatureModelToFeatureTree.createFeatureModel(uvlModel);
 
-            List<IFeatureTree> roots = featureModel.getRoots();
+            List<? extends IFeatureTree> roots = featureModel.getRoots();
             if (roots.isEmpty()) {
                 problems.add(new Problem("No root features exist.", Problem.Severity.ERROR));
                 return Result.empty(problems);
@@ -87,7 +87,8 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
                 return Result.empty(problems);
             }
 
-            List<IFormula> constraintFormulas = UVLUtils.uvlConstraintToFormula(uvlModel.getConstraints());
+            List<IFormula> constraintFormulas =
+                    UVLFeatureModelToFeatureTree.uvlConstraintToFormula(uvlModel.getConstraints());
             formulas.addAll(constraintFormulas);
 
             IFormula formula = new Reference(formulas.size() == 1 ? formulas.get(0) : new And(formulas));

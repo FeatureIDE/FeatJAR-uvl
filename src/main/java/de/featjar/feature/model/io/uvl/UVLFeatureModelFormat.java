@@ -47,9 +47,9 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
             UVLModelFactory uvlModelFactory = new UVLModelFactory();
             de.vill.model.FeatureModel uvlModel = uvlModelFactory.parse(content);
 
-            IFeatureModel featureModel = UVLUtils.createFeatureModel(uvlModel);
+            IFeatureModel featureModel = UVLFeatureModelToFeatureTree.createFeatureModel(uvlModel);
 
-            List<IFormula> formulas = UVLUtils.uvlConstraintToFormula(uvlModel.getConstraints());
+            List<IFormula> formulas = UVLFeatureModelToFeatureTree.uvlConstraintToFormula(uvlModel.getConstraints());
             formulas.forEach((formula) -> featureModel.mutate().addConstraint(formula));
 
             return Result.of(featureModel);

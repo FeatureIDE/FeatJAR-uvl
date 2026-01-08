@@ -23,11 +23,12 @@ package de.featjar.feature.model.io.uvl.visitor;
 import static de.vill.model.FeatureType.*;
 import static de.vill.model.FeatureType.STRING;
 
+import de.featjar.base.data.Name;
 import de.featjar.base.data.Problem;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.ParseException;
 import de.featjar.base.tree.visitor.ITreeVisitor;
-import de.featjar.feature.model.Attributes;
+import de.featjar.feature.model.FeatureModelAttributes;
 import de.featjar.feature.model.FeatureTree;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureTree;
@@ -88,11 +89,6 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
             de.vill.model.Feature uvlFeature = new de.vill.model.Feature(name);
 
             uvlFeature.setNameSpace(namespace);
-            uvlFeature
-                    .getAttributes()
-                    .put(
-                            "abstract",
-                            new Attribute<>("abstract", node.getFeature().isAbstract()));
             try {
                 uvlFeature.setFeatureType(getUVLFeatureType(node.getFeature()));
             } catch (ParseException e) {
@@ -102,12 +98,17 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
             }
 
             node.getFeature().getAttributes().orElseThrow().entrySet().stream()
-                    .filter((entry) -> !entry.getKey().equals(Attributes.ABSTRACT))
-                    .forEach(entry -> uvlFeature
-                            .getAttributes()
-                            .put(
-                                    entry.getKey().getName(),
-                                    new Attribute<>(entry.getKey().getName(), entry.getValue())));
+                    .filter((entry) -> !entry.getKey().equals(FeatureModelAttributes.NAME))
+                    .forEach(entry -> {
+                        Name attributeName = entry.getKey().getName();
+                        String uvlAttributeName = (entry.getKey().equals(FeatureModelAttributes.ABSTRACT))
+                                ? escapeSeparator(attributeName.getName())
+                                : escapeSeparator(attributeName.getNamespace()) + ":"
+                                        + escapeSeparator(attributeName.getName());
+                        uvlFeature
+                                .getAttributes()
+                                .put(uvlAttributeName, new Attribute<>(uvlAttributeName, entry.getValue()));
+                    });
 
             List<FeatureTree.Group> groups = node.getChildrenGroups();
 
@@ -157,6 +158,10 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
         }
 
         return TraversalAction.CONTINUE;
+    }
+
+    private String escapeSeparator(String name) {
+        return name.replace(":", "::");
     }
 
     private List<de.vill.model.Feature> getUVLChildrenFeatures(List<? extends IFeatureTree> features) throws Exception {

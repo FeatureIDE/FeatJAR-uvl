@@ -20,14 +20,17 @@
  */
 package de.featjar.feature.model.io.uvl.visitor;
 
+import de.featjar.base.data.BinomialCalculator;
 import de.featjar.base.data.Problem;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.visitor.ITreeVisitor;
-import de.featjar.feature.model.*;
-import de.featjar.feature.model.io.uvl.UVLUtils;
+import de.featjar.feature.model.FeatureTree;
+import de.featjar.feature.model.IFeature;
+import de.featjar.feature.model.IFeatureTree;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
 import de.featjar.formula.structure.connective.Implies;
+import de.featjar.formula.structure.connective.Not;
 import de.featjar.formula.structure.connective.Or;
 import de.featjar.formula.structure.predicate.Literal;
 import de.featjar.formula.structure.predicate.True;
@@ -103,7 +106,7 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
                 IFormula[] children = node.getChildren().stream()
                         .map((child) -> formulas.get(child))
                         .toArray(IFormula[]::new);
-                childrenFormula = UVLUtils.nchoosek(children, 1, false);
+                childrenFormula = nchoosek(children, 1, false);
             } else if (group.isOr()) {
                 IFormula[] children = node.getChildren().stream()
                         .map((child) -> formulas.get(child))
@@ -142,5 +145,75 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
         rootFormula = currentFormula;
 
         return TraversalAction.CONTINUE;
+    }
+
+    /**
+     * Creates a new formula where exactly k of the n provided formulas must be satisfied.
+     * @param elements The n formulas.
+     * @param k Specifies how many of the n formulas must exactly be satisfied.
+     * @param negated Negates all literals.
+     * @return n choose k formula.
+     */
+    private static IFormula nchoosek(IFormula[] elements, int k, boolean negated) {
+        final int n = elements.length;
+
+        // return tautology
+        if ((k == 0) || (k == (n + 1))) {
+            return new Or(new Not(elements[0]), elements[0]);
+        }
+
+        // return contradiction
+        if ((k < 0) || (k > (n + 1))) {
+            return new And(new Not(elements[0]), elements[0]);
+        }
+
+        final IFormula[] newNodes = new IFormula[(int) BinomialCalculator.computeBinomial(n, k)];
+        int j = 0;
+
+        // negate all elements
+        if (negated) {
+            negateNodes(elements);
+        }
+
+        final IFormula[] clause = new IFormula[k];
+        final int[] index = new int[k];
+
+        // the position that is currently filled in clause
+        int level = 0;
+        index[level] = -1;
+
+        while (level >= 0) {
+            // fill this level with the next element
+            index[level]++;
+            // did we reach the maximum for this level
+            if (index[level] >= (n - (k - 1 - level))) {
+                // go to previous level
+                level--;
+            } else {
+                clause[level] = elements[index[level]];
+                if (level == (k - 1)) {
+                    newNodes[j++] = new Or(clause);
+                } else {
+                    // go to next level
+                    level++;
+                    // allow only ascending orders (to prevent from duplicates)
+                    index[level] = index[level - 1];
+                }
+            }
+        }
+        if (j != newNodes.length) {
+            throw new RuntimeException("Pre-calculation of the number of elements failed!");
+        }
+        return new And(newNodes);
+    }
+
+    /**
+     * Warps all given formulas in a Not node.
+     * @param nodes the formulas to negate
+     */
+    private static void negateNodes(IFormula[] nodes) {
+        for (int i = 0; i < nodes.length; i++) {
+            nodes[i] = new Not(nodes[i]);
+        }
     }
 }

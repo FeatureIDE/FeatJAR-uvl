@@ -21,11 +21,12 @@
 package de.featjar.feature.model.io.uvl;
 
 import de.featjar.base.FeatJAR;
-import de.featjar.base.data.BinomialCalculator;
+import de.featjar.base.data.Attributes;
 import de.featjar.base.data.Range;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.ParseException;
 import de.featjar.feature.model.FeatureModel;
+import de.featjar.feature.model.FeatureModelAttributes;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.IFeatureTree;
@@ -35,15 +36,16 @@ import de.featjar.formula.io.textual.UVLSymbols;
 import de.featjar.formula.structure.Expressions;
 import de.featjar.formula.structure.IExpression;
 import de.featjar.formula.structure.IFormula;
-import de.featjar.formula.structure.connective.And;
-import de.featjar.formula.structure.connective.Not;
-import de.featjar.formula.structure.connective.Or;
+import de.vill.model.Attribute;
 import de.vill.model.FeatureType;
 import de.vill.model.Group;
 import de.vill.model.constraint.Constraint;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -52,7 +54,22 @@ import java.util.Optional;
  * @author Andreas Gerasimow
  * @author Sebastion Krieter
  */
-public class UVLUtils {
+public class UVLFeatureModelToFeatureTree {
+
+    /**
+     * Converts UVL feature model to FeatJAR feature model.
+     * @param uvlFeatureModel The UVL feature model to convert.
+     * @return A FeatJAR feature model.
+     * @throws ParseException if a parsing error occurs
+     */
+    public static IFeatureModel createFeatureModel(de.vill.model.FeatureModel uvlFeatureModel) throws ParseException {
+        IFeatureModel featureModel = new FeatureModel();
+        de.vill.model.Feature rootFeature = uvlFeatureModel.getRootFeature();
+        UVLFeatureModelToFeatureTree.createFeatureTree(featureModel, rootFeature);
+
+        return featureModel;
+    }
+
     /**
      * Converts a list of UVL constraints into a list of formulas by parsing each UVL constraint.
      * @param uvlConstraints the UVL constraints
@@ -81,41 +98,12 @@ public class UVLUtils {
     }
 
     /**
-     * Converts UVL feature model to FeatJAR feature model.
-     * @param uvlFeatureModel The UVL feature model to convert.
-     * @return A FeatJAR feature model.
-     * @throws ParseException if a parsing error occurs
-     */
-    public static IFeatureModel createFeatureModel(de.vill.model.FeatureModel uvlFeatureModel) throws ParseException {
-        IFeatureModel featureModel = new FeatureModel();
-        de.vill.model.Feature rootFeature = uvlFeatureModel.getRootFeature();
-        UVLUtils.createFeatureTree(featureModel, rootFeature);
-
-        return featureModel;
-    }
-
-    /**
-     * Converts UVL feature to FeatJAR feature.
-     * @param featureModel The corresponding feature model of the feature.
-     * @param uvlFeature The UVL feature to convert.
-     * @return A FeatJAR feature.
-     * @throws ParseException if a parsing error occurs
-     */
-    public static IFeature createFeature(IFeatureModel featureModel, de.vill.model.Feature uvlFeature)
-            throws ParseException {
-        IFeature feature = featureModel.mutate().addFeature(getName(uvlFeature));
-        feature.mutate().setAbstract(getAttributeValue(uvlFeature, "abstract", Boolean.FALSE));
-        feature.mutate().setType(getFeatureType(uvlFeature));
-        return feature;
-    }
-
-    /**
      * Builds a FeatJAR feature model from a UVL root feature.
      * @param featureModel FeatJAR feature model to build.
      * @param rootUVLFeature UVL root feature from a UVL feature model.
      * @throws ParseException if a parsing error occurs
      */
-    public static void createFeatureTree(IFeatureModel featureModel, de.vill.model.Feature rootUVLFeature)
+    private static void createFeatureTree(IFeatureModel featureModel, de.vill.model.Feature rootUVLFeature)
             throws ParseException {
         LinkedList<de.vill.model.Feature> featureStack = new LinkedList<>();
         LinkedList<IFeatureTree> featureTreeStack = new LinkedList<>();
@@ -187,12 +175,61 @@ public class UVLUtils {
     }
 
     /**
+     * Converts UVL feature to FeatJAR feature.
+     * @param featureModel The corresponding feature model of the feature.
+     * @param uvlFeature The UVL feature to convert.
+     * @return A FeatJAR feature.
+     * @throws ParseException if a parsing error occurs
+     */
+    private static IFeature createFeature(IFeatureModel featureModel, de.vill.model.Feature uvlFeature)
+            throws ParseException {
+        IFeature feature = featureModel.mutate().addFeature(getName(uvlFeature));
+        feature.mutate().setAbstract(getAttributeValue(uvlFeature, "abstract", Boolean.FALSE));
+        Map<String, Attribute> attributes = uvlFeature.getAttributes();
+        for (Entry<String, Attribute> entry : attributes.entrySet()) {
+            String uvlAttributeName = entry.getValue().getName();
+            Object uvlAttributeValue = Objects.requireNonNull(entry.getValue().getValue());
+
+            de.featjar.base.data.Attribute<? extends Object> attribute;
+            if (FeatureModelAttributes.ABSTRACT.getSimpleName().equals(uvlAttributeName)) {
+                attribute = FeatureModelAttributes.ABSTRACT;
+            } else if (FeatureModelAttributes.HIDDEN.getSimpleName().equals(uvlAttributeName)) {
+                attribute = FeatureModelAttributes.HIDDEN;
+            } else {
+                String[] nameParts = uvlAttributeName.split("(?<!:):(?!:)");
+                if (nameParts.length > 2) {
+                    throw new ParseException(uvlAttributeName);
+                }
+                attribute = (nameParts.length == 2)
+                        ? Attributes.get(
+                                unescapeSeparator(nameParts[0]),
+                                unescapeSeparator(nameParts[1]),
+                                uvlAttributeValue.getClass())
+                        : Attributes.get(unescapeSeparator(uvlAttributeName), uvlAttributeValue.getClass());
+            }
+
+            setAttribute(feature, attribute, uvlAttributeValue);
+        }
+        feature.mutate().setType(getFeatureType(uvlFeature));
+        return feature;
+    }
+
+    private static <T> void setAttribute(
+            IFeature feature, de.featjar.base.data.Attribute<T> attribute, Object uvlAttributeValue) {
+        feature.mutate().setAttributeValue(attribute, attribute.cast(uvlAttributeValue));
+    }
+
+    private static String unescapeSeparator(String name) {
+        return name.replaceAll(":(:+)", "$1");
+    }
+
+    /**
      * Converts UVL feature type to FeatJAR feature type.
      * @param uvlFeature UVL feature to retrieve the type.
      * @return FeatJAR feature type.
      * @throws ParseException if a parsing error occurs
      */
-    public static Class<?> getFeatureType(de.vill.model.Feature uvlFeature) throws ParseException {
+    private static Class<?> getFeatureType(de.vill.model.Feature uvlFeature) throws ParseException {
         FeatureType featureType = uvlFeature.getFeatureType();
         if (featureType == null) {
             return Boolean.class;
@@ -217,7 +254,7 @@ public class UVLUtils {
      * @param feature UVL feature to retrieve the name and namespace.
      * @return Name of the feature. If the feature has a namespace, the return value will be in the following format: {@literal <namespace>::<feature name>}
      */
-    public static String getName(de.vill.model.Feature feature) {
+    private static String getName(de.vill.model.Feature feature) {
         String nameSpace = feature.getNameSpace();
         return (nameSpace != null && !nameSpace.isBlank() ? nameSpace + "::" : "") + feature.getFeatureName();
     }
@@ -231,89 +268,9 @@ public class UVLUtils {
      * @param <T> the type of the attribute
      */
     @SuppressWarnings("unchecked")
-    public static <T> T getAttributeValue(de.vill.model.Feature feature, String key, T defaultValue) {
+    private static <T> T getAttributeValue(de.vill.model.Feature feature, String key, T defaultValue) {
         return Optional.ofNullable(feature.getAttributes().get(key))
                 .map(a -> (T) a.getValue())
                 .orElse(defaultValue);
-    }
-
-    /**
-     * Creates a new formula where exactly k of the n provided formulas must be satisfied.
-     * @param elements The n formulas.
-     * @param k Specifies how many of the n formulas must exactly be satisfied.
-     * @param negated Negates all literals.
-     * @return n choose k formula.
-     */
-    public static IFormula nchoosek(IFormula[] elements, int k, boolean negated) {
-        final int n = elements.length;
-
-        // return tautology
-        if ((k == 0) || (k == (n + 1))) {
-            return new Or(new Not(elements[0]), elements[0]);
-        }
-
-        // return contradiction
-        if ((k < 0) || (k > (n + 1))) {
-            return new And(new Not(elements[0]), elements[0]);
-        }
-
-        final IFormula[] newNodes = new IFormula[(int) binomial(n, k)];
-        int j = 0;
-
-        // negate all elements
-        if (negated) {
-            negateNodes(elements);
-        }
-
-        final IFormula[] clause = new IFormula[k];
-        final int[] index = new int[k];
-
-        // the position that is currently filled in clause
-        int level = 0;
-        index[level] = -1;
-
-        while (level >= 0) {
-            // fill this level with the next element
-            index[level]++;
-            // did we reach the maximum for this level
-            if (index[level] >= (n - (k - 1 - level))) {
-                // go to previous level
-                level--;
-            } else {
-                clause[level] = elements[index[level]];
-                if (level == (k - 1)) {
-                    newNodes[j++] = new Or(clause);
-                } else {
-                    // go to next level
-                    level++;
-                    // allow only ascending orders (to prevent from duplicates)
-                    index[level] = index[level - 1];
-                }
-            }
-        }
-        if (j != newNodes.length) {
-            throw new RuntimeException("Pre-calculation of the number of elements failed!");
-        }
-        return new And(newNodes);
-    }
-
-    /**
-     * The number of ways selecting k things out of n things in a set.
-     * @param n Size of the set.
-     * @param k Size of the possible subsets.
-     * @return Result of n choose k.
-     */
-    public static long binomial(int n, int k) {
-        return new BinomialCalculator(n, k).binomial();
-    }
-
-    /**
-     * Warps all given formulas in a Not node.
-     * @param nodes the formulas to negate
-     */
-    protected static void negateNodes(IFormula[] nodes) {
-        for (int i = 0; i < nodes.length; i++) {
-            nodes[i] = new Not(nodes[i]);
-        }
     }
 }
