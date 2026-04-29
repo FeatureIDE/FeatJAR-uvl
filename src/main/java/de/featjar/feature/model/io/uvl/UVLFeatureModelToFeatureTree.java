@@ -123,21 +123,16 @@ public class UVLFeatureModelToFeatureTree {
             } else if (feature.getParentGroup() != null
                     && feature.getParentGroup().GROUPTYPE == Group.GroupType.OPTIONAL) {
                 tree.mutate().makeOptional();
-            } else if (feature.getLowerBound() != null) {
-                if (feature.getUpperBound() != null) {
+            } else if (feature.getCardinality() != null) {
+                if (feature.getCardinality().upper < Integer.MAX_VALUE) {
                     tree.mutate()
-                            .setFeatureCardinality(Range.of(
-                                    Integer.parseInt(feature.getLowerBound()),
-                                    Integer.parseInt(feature.getUpperBound())));
+                            .setFeatureCardinality(
+                                    Range.of(feature.getCardinality().lower, feature.getCardinality().upper));
                 } else {
-                    tree.mutate().setFeatureCardinality(Range.atLeast(Integer.parseInt(feature.getLowerBound())));
+                    tree.mutate().setFeatureCardinality(Range.atLeast(feature.getCardinality().lower));
                 }
             } else {
-                if (feature.getUpperBound() != null) {
-                    tree.mutate().setFeatureCardinality(Range.atMost(Integer.parseInt(feature.getUpperBound())));
-                } else {
-                    tree.mutate().setFeatureCardinality(Range.atMost(1));
-                }
+                tree.mutate().setFeatureCardinality(Range.atMost(1));
             }
 
             List<de.vill.model.Group> children = feature.getChildren();
@@ -155,8 +150,7 @@ public class UVLFeatureModelToFeatureTree {
                         groupRange = Range.atLeast(1);
                         break;
                     case GROUP_CARDINALITY:
-                        groupRange = Range.of(
-                                Integer.parseInt(feature.getLowerBound()), Integer.parseInt(feature.getUpperBound()));
+                        groupRange = Range.of(feature.getCardinality().lower, feature.getCardinality().upper);
                         break;
                     default:
                         throw new ParseException(String.valueOf(group.GROUPTYPE));
@@ -185,8 +179,8 @@ public class UVLFeatureModelToFeatureTree {
             throws ParseException {
         IFeature feature = featureModel.mutate().addFeature(getName(uvlFeature));
         feature.mutate().setAbstract(getAttributeValue(uvlFeature, "abstract", Boolean.FALSE));
-        Map<String, Attribute> attributes = uvlFeature.getAttributes();
-        for (Entry<String, Attribute> entry : attributes.entrySet()) {
+        Map<String, Attribute<?>> attributes = uvlFeature.getAttributes();
+        for (Entry<String, Attribute<?>> entry : attributes.entrySet()) {
             String uvlAttributeName = entry.getValue().getName();
             Object uvlAttributeValue = Objects.requireNonNull(entry.getValue().getValue());
 

@@ -33,9 +33,7 @@ import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
 import de.featjar.formula.structure.connective.Reference;
 import de.featjar.formula.structure.predicate.True;
-import de.vill.model.Attribute;
 import de.vill.model.Feature;
-import de.vill.model.FeatureType;
 import de.vill.model.Group;
 import java.util.ArrayList;
 import java.util.List;
@@ -122,9 +120,6 @@ public class UVLFormulaFormat extends AUVLFormat<IFormula> implements IFormulaFo
     public Result<String> serialize(IFormula formula) {
         de.vill.model.FeatureModel uvlModel = new de.vill.model.FeatureModel();
         de.vill.model.Feature uvlRootFeature = new Feature(ROOT_FEATURE_NAME);
-        uvlRootFeature.setFeatureType(FeatureType.BOOL);
-        uvlRootFeature.getAttributes().put("name", new Attribute<>("name", ROOT_FEATURE_NAME));
-        uvlRootFeature.getAttributes().put("abstract", new Attribute<>("abstract", true));
         uvlModel.setRootFeature(uvlRootFeature);
         uvlModel.getFeatureMap().put(ROOT_FEATURE_NAME, uvlRootFeature);
 
@@ -133,9 +128,6 @@ public class UVLFormulaFormat extends AUVLFormat<IFormula> implements IFormulaFo
 
         formula.getVariableNames().forEach((variableName) -> {
             de.vill.model.Feature uvlFeature = new Feature(variableName);
-            uvlFeature.setFeatureType(FeatureType.BOOL);
-            uvlFeature.getAttributes().put("name", new Attribute<>("name", variableName));
-            uvlFeature.getAttributes().put("abstract", new Attribute<>("abstract", false));
             uvlModel.getFeatureMap().put(variableName, uvlFeature);
             uvlRootGroup.getFeatures().add(uvlFeature);
         });

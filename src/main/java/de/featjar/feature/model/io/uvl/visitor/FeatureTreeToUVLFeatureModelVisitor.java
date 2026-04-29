@@ -35,6 +35,7 @@ import de.featjar.feature.model.FeatureTree;
 import de.featjar.feature.model.IFeature;
 import de.featjar.feature.model.IFeatureTree;
 import de.vill.model.Attribute;
+import de.vill.model.Cardinality;
 import de.vill.model.FeatureModel;
 import de.vill.model.FeatureType;
 import de.vill.model.Group;
@@ -110,11 +111,15 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
                         Name attributeName = entry.getKey().getName();
                         if (entry.getKey().equals(FeatureModelAttributes.ABSTRACT)) {
                             if (entry.getValue() == Boolean.TRUE) {
-                                uvlFeature.getAttributes().put("abstract", new Attribute<>("abstract", Boolean.TRUE));
+                                uvlFeature
+                                        .getAttributes()
+                                        .put("abstract", new Attribute<>("abstract", Boolean.TRUE, uvlFeature));
                             }
                         } else if (entry.getKey().equals(FeatureModelAttributes.HIDDEN)) {
                             if (entry.getValue() == Boolean.TRUE) {
-                                uvlFeature.getAttributes().put("hidden", new Attribute<>("hidden", Boolean.TRUE));
+                                uvlFeature
+                                        .getAttributes()
+                                        .put("hidden", new Attribute<>("hidden", Boolean.TRUE, uvlFeature));
                             }
                         } else {
                             String uvlAttributeName = escapeSeparator(attributeName.getNamespace())
@@ -122,7 +127,9 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
                                     + escapeSeparator(attributeName.getName());
                             uvlFeature
                                     .getAttributes()
-                                    .put(uvlAttributeName, new Attribute<>(uvlAttributeName, entry.getValue()));
+                                    .put(
+                                            uvlAttributeName,
+                                            new Attribute<>(uvlAttributeName, entry.getValue(), uvlFeature));
                         }
                     });
 
@@ -157,8 +164,7 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
                 } else if (groupType == GroupType.GROUP_CARDINALITY) {
                     de.vill.model.Group uvlGroup = new de.vill.model.Group(groupType);
                     uvlGroup.setParentFeature(uvlFeature);
-                    uvlGroup.setLowerBound(String.valueOf(group.getLowerBound()));
-                    uvlGroup.setUpperBound(String.valueOf(group.getUpperBound()));
+                    uvlGroup.setCardinality(new Cardinality(group.getLowerBound(), group.getUpperBound()));
                     uvlGroup.getFeatures().addAll(getUVLChildrenFeatures(children));
                     uvlFeature.addChildren(uvlGroup);
                 } else {

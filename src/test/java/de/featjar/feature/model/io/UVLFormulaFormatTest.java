@@ -90,12 +90,12 @@ public class UVLFormulaFormatTest extends Common {
         }
 
         IFormula expected = new Reference(new Or(
-                new And(new Literal("Test1"), new Literal("Test2")),
                 new Or(
-                        new BiImplies(new Literal("Test3"), new Literal("Test4")),
                         new Or(
-                                new Implies(new Literal("Test5"), new Literal("Test6")),
-                                new Not(new Literal("Test7"))))));
+                                new And(new Literal("Test1"), new Literal("Test2")),
+                                new BiImplies(new Literal("Test3"), new Literal("Test4"))),
+                        new Implies(new Literal("Test5"), new Literal("Test6"))),
+                new Not(new Literal("Test7"))));
 
         Assertions.assertEquals(expected, result.get());
     }
